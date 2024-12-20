@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Искра</title>
+    <link rel="stylesheet" href="/static/css/chat.css">
+    <meta name="csrf-token" th:content="${_csrf.token}">
+    <meta name="authed-user-id" th:content="${authedUser.userId()}">
+    <meta name="receiver-user-id" th:content="${receiver.userId()}">
+
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.2/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon/favicon-16x16.png">
+    <link rel="manifest" href="/static/favicon/site.webmanifest">
+</head>
+<body>
+
+<header>
+    <nav>
+        <h1 class="top-left"><a href="/">Искра</a></h1>
+        <div class="top-right">
+            <div th:if="${!isAuthenticated}">
+                <a href="/register" class="button">Зарегистрироваться</a>
+                <a href="/login" class="button">Вход</a>
+            </div>
+            <div th:if="${isAuthenticated}">
+                <a th:href="@{/user/{id}(id=${authedUser.userId()})}" class="user-name" th:text="${authedUser.firstName()}" th:attr="data-authed-user-id=|${authedUser.userId()}|"></a>
+                <form action="/logout" method="post" class="logout-form">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                    <button type="submit" class="button logout-button">Выйти</button>
+                </form>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<main th:if="${isAuthenticated}">
+    <div class="chat-container">
+        <div class="chat-header">
+            <h2>Чат с пользователем <a th:text="${receiver.firstName()}" th:href="@{/user/{id}(id=${receiver.userId()})}"></a></h2>
+        </div>
+        <div id="chat-window" class="chat-window"></div>
+        <div class="chat-input-container">
+            <textarea id="message-input" placeholder="Введите сообщение..."></textarea>
+            <button id="send-button">Отправить</button>
+        </div>
+    </div>
+</main>
+
+<script>
+    const authedId = document.querySelector('meta[name="authed-user-id"]').content;
+    const receiverId = document.querySelector('meta[name="receiver-user-id"]').content;
+    const token = document.querySelector('meta[name="csrf-token"]').content;
+
+    // Переменные для работы с WebSocket и DOM
+    let stompClient = null;
+    const chatWindow = document.getElementById("chat-window");
+    const messageInput = document.getElementById("message-input");
+    const sendButton = document.getElementById("send-button");
+
+    // Подключение WebSocket
+    function connectWebSocket() {
+        const socket = new SockJS('/ws'); // Путь для WebSocket
+        stompClient = Stomp.over(socket);
+
+        stompClient.connect({}, () => {
+            console.log("WebSocket подключен.");
+
+            // Подписываемся на получение новых сообщений
+            stompClient.subscribe(`/topic/message/${authedId}`, (message) => {
+                const receivedMessage = JSON.parse(message.body);
+                appendMessage(receivedMessage, false);
+            });
+        });
+    }
+
+    // Функция для загрузки сообщений из базы данных
+    function loadMessages() {
+        fetch(`/message?receiverId=${receiverId}`, {
+            method: "GET",
+            headers: { "X-CSRF-TOKEN": token }
+        })
+            .then(response => response.json())
+            .then(messages => {
+                chatWindow.innerHTML = ""; // Очищаем окно чата
+                messages.forEach(message => {
+                    console.log(Number(message.senderId), Number(authedId), Number(message.senderId) == Number(authedId), Number(message.senderId) === Number(authedId))
+                    const isSentByUser = Number(message.senderId) === Number(authedId);
+                    appendMessage(message, isSentByUser);
+                });
+            })
+            .catch(err => console.error("Ошибка при загрузке сообщений:", err));
+    }
+
+    // Отправка нового сообщения
+    sendButton.addEventListener("click", () => {
+        const content = messageInput.value.trim();
+        if (content) {
+            const message = {
+                senderId: authedId,
+                receiverId: receiverId,
+                content: content,
+                sentAt: Date.now()
+            };
+
+            // Отправка сообщения через WebSocket
+            stompClient.send(`/app/message/${receiverId}`, {}, JSON.stringify(message));
+            appendMessage(message, true); // Отображаем сообщение сразу
+            messageInput.value = ''; // Очищаем поле вводаmessage
+        }
+    });
+
+    // Функция для добавления сообщения в окно чата
+    function appendMessage(message, isSentByUser) {
+        const messageElement = document.createElement("div");
+        messageElement.className = `message ${isSentByUser ? "sent" : "received"}`;
+
+        var options = {
+            year: 'numeric',
+            month: 'numeric',
+            day: 'numeric',
+            timezone: 'UTC'
+        };
+        const sentAt = new Date(message.sentAt);
+        const datetime = sentAt.toLocaleString();
+
+        messageElement.innerHTML = `
+        <div>${message.content}</div>
+        <span class="message-time">${datetime}</span>
+    `;
+
+        chatWindow.appendChild(messageElement);
+        chatWindow.scrollTop = chatWindow.scrollHeight; // Прокручиваем вниз
+    }
+
+    // Событие загрузки страницы
+    document.addEventListener("DOMContentLoaded", () => {
+        connectWebSocket();
+        loadMessages();
+    });
+
+</script>
+</body>
+</html>

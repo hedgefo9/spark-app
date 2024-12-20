@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="csrf-token" th:content="${_csrf.token}">
+    <meta name="user-id" th:content="${user.userId()}">
+    <title>Профиль пользователя</title>
+
+    <link rel="stylesheet" href="/static/css/show.css">
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon/favicon-16x16.png">
+    <link rel="manifest" href="/static/favicon/site.webmanifest">
+</head>
+<body>
+
+<h2>Профиль</h2>
+
+<div class="profile-photo-container">
+
+    <div class="slider">
+        <button class="slider-button prev" onclick="prevPhoto()">&#9664;</button>
+        <div class="slider-photo">
+            <img id="current-photo" src="/static/images/default-avatar.jpeg" alt="Фото" class="profile-photo">
+            <button th:if="${isEditable}" class="delete-button" onclick="deletePhoto(currentPhotoId)">🗑</button>
+            <button th:if="${isEditable}" class="primary-button" id="primary-button" onclick="setPrimaryPhoto(currentPhotoId)">⭐</button>
+        </div>
+        <button class="slider-button next" onclick="nextPhoto()">&#9654;</button>
+    </div>
+
+
+    <form th:action="@{/photos/upload}" method="post" enctype="multipart/form-data" id="upload-form" class="upload-form">
+        <label th:if="${isEditable}" class="file-label">
+            <input type="file" name="file" required>
+            <span>📁 Выбрать фото</span>
+        </label>
+        <input th:if="${isEditable}" type="hidden" name="userId" th:value="${user.userId()}">
+        <button th:if="${isEditable}" type="submit" class="upload-button">⬆ Загрузить</button>
+    </form>
+</div>
+
+<form id="profile-form">
+
+    <label for="firstName">Имя:</label>
+    <span th:if="${!isEditable}" th:text="${user.firstName()}"></span>
+    <input type="text" th:if="${isEditable}" id="firstName" th:value="${user.firstName()}"><br>
+
+    <label for="lastName">Фамилия:</label>
+    <span th:if="${!isEditable}" th:text="${user.lastName()}"></span>
+    <input type="text" th:if="${isEditable}" id="lastName" th:value="${user.lastName()}"><br>
+
+    <label for="gender">Пол:</label>
+    <span th:if="${!isEditable}" th:text="${user.gender() == 0 ? 'Мужской' : 'Женский'}"></span>
+    <select th:if="${isEditable}" id="gender">
+        <option value="0" th:selected="${user.gender() == 0}">Мужской</option>
+        <option value="1" th:selected="${user.gender() == 1}">Женский</option>
+    </select>
+
+    <label for="birthDate">Дата рождения:</label>
+    <span th:if="${!isEditable}" th:text="${user.birthDate()}"></span>
+    <input type="date" th:if="${isEditable}" id="birthDate" th:value="${user.birthDate()}"><br>
+
+    <label for="phoneNumber">Номер телефона:</label>
+    <span th:if="${!isEditable}" th:text="${user.phoneNumber()}"></span>
+    <input type="tel" th:if="${isEditable}" id="phoneNumber" th:value="${user.phoneNumber()}"><br>
+
+    <label for="email">E-Mail:</label>
+    <span th:if="${!isEditable}" th:text="${user.email()}"></span>
+    <input type="email" th:if="${isEditable}" id="email" th:value="${user.email()}"><br>
+
+    <label for="city">Город:</label>
+    <span th:if="${!isEditable}" th:text="${user.city()}"></span>
+    <input type="text" th:if="${isEditable}" id="city" th:value="${user.city()}"><br>
+
+    <label for="education">Образование:</label>
+    <span th:if="${!isEditable}" th:text="${user.education() == 0 ? 'Базовое' : user.education() == 1 ? 'Среднее' : user.education() == 2 ? 'Бакалавриат' : user.education() == 3 ? 'Магистратура' : 'PhD'}"></span>
+    <select th:if="${isEditable}" id="education">
+        <option value="0" th:selected="${user.education() == 0}">Базовое</option>
+        <option value="1" th:selected="${user.education() == 1}">Среднее</option>
+        <option value="2" th:selected="${user.education() == 2}">Бакалавриат</option>
+        <option value="3" th:selected="${user.education() == 3}">Магистратура</option>
+        <option value="4" th:selected="${user.education() == 4}">PhD</option>
+    </select>
+
+    <label for="smokes">Курит:</label>
+    <span th:if="${!isEditable}" th:text="${user.smokes() ? 'Да' : 'Нет'}"></span>
+    <select th:if="${isEditable}" id="smokes">
+        <option value="true" th:selected="${user.smokes() == true}">Да</option>
+        <option value="false" th:selected="${user.smokes() == false}">Нет</option>
+    </select><br>
+
+    <button th:if="${isEditable}" type="button" id="save-profile-btn">Сохранить профиль</button>
+</form>
+
+<h2>Био</h2>
+
+<form id="bio-form">
+
+    <label for="aboutMe">Обо мне:</label>
+    <span th:if="${!isEditable}" th:text="${bio.aboutMe()}"></span>
+    <textarea th:if="${isEditable}" id="aboutMe" rows="4" cols="50" th:text="${bio.aboutMe()}"></textarea><br>
+
+    <label for="lookingFor">Ищу:</label>
+    <span th:if="${!isEditable}" th:text="${bio.lookingFor()}"></span>
+    <textarea th:if="${isEditable}" id="lookingFor" rows="4" cols="50" th:text="${bio.lookingFor()}"></textarea><br>
+
+    <button th:if="${isEditable}" type="button" id="save-bio-btn">Сохранить био</button>
+</form>
+
+<h2 class="section-title">Создано и обновлено</h2>
+<div class="update-info">
+    <p class="update-item">
+        <strong>Профиль создан:</strong> <span th:text="${user.createdAt()}"></span>
+    </p>
+    <p class="update-item">
+        <strong>Профиль обновлен:</strong> <span th:text="${user.updatedAt()}"></span>
+    </p>
+    <p class="update-item">
+        <strong>Био обновлено:</strong> <span th:text="${bio.updatedAt()}"></span>
+    </p>
+</div>
+
+<script src="/static/js/edit-profile.js"></script>
+</body>
+</html>

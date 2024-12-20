@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Вход</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon/favicon-16x16.png">
+  <link rel="manifest" href="/static/favicon/site.webmanifest">
+</head>
+<body>
+
+<h1>Войти в систему</h1>
+
+<form th:action="@{/login}" method="post">
+  <div>
+    <label for="username">Электронная почта:</label>
+    <input type="text" id="username" name="username" required="required" />
+  </div>
+  <div>
+    <label for="password">Пароль:</label>
+    <input type="password" id="password" name="password" required="required" />
+  </div>
+  <div>
+    <button type="submit">Войти</button>
+  </div>
+</form>
+
+<p>Еще не зарегистрированы? <a href="/register">Зарегистрироваться</a></p>
+
+</body>
+</html>

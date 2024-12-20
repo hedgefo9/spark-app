@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="csrf-token" th:content="${_csrf.token}">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Панель администратора</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f6f8;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      width: 80%;
+      margin: 30px auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background-color: #007BFF;
+      color: #fff;
+    }
+
+    .btn {
+      background-color: #007BFF;
+      color: #fff;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .btn-danger {
+      background-color: #dc3545;
+    }
+
+    .btn-success {
+      background-color: #28a745;
+    }
+
+    .form-group {
+      margin: 20px 0;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: bold;
+    }
+
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      font-size: 14px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    .form-group button {
+      width: 100%;
+      padding: 10px;
+      background-color: #007BFF;
+      color: #fff;
+      font-size: 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .form-group button:hover {
+      background-color: #0056b3;
+    }
+
+    .alert {
+      padding: 10px;
+      background-color: #28a745;
+      color: white;
+      margin-top: 20px;
+      border-radius: 5px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Панель администратора</h1>
+
+
+  <div id="alert" class="alert">
+    Операция выполнена успешно!
+  </div>
+
+  <h2>Активные подписки</h2>
+  <table id="subscriptions-table">
+    <thead>
+    <tr>
+      <th>ID пользователя</th>
+      <th>Тип подписки</th>
+      <th>Дата начала</th>
+      <th>Дата окончания</th>
+      <th>Действие</th>
+    </tr>
+    </thead>
+    <tbody>
+
+    </tbody>
+  </table>
+
+  <h2>Добавить новую подписку</h2>
+  <div class="form-group">
+    <label for="user-id">ID пользователя:</label>
+    <input type="number" id="user-id" required>
+  </div>
+  <div class="form-group">
+    <label for="plan-type">Тип подписки:</label>
+    <select id="plan-type" required>
+      <option value="basic">Базовый</option>
+    </select>
+  </div>
+  <div class="form-group">
+    <button id="add-subscription-btn">Добавить подписку</button>
+  </div>
+</div>
+
+<script>
+  const token = document.querySelector('meta[name="csrf-token"]').content;
+  const alertBox = document.getElementById('alert');
+  const subscriptionsTable = document.getElementById('subscriptions-table').getElementsByTagName('tbody')[0];
+  const addSubscriptionBtn = document.getElementById('add-subscription-btn');
+
+  // Получение активных подписок
+  function fetchSubscriptions() {
+    fetch(`/subscription`, {
+      headers: {
+        'X-CSRF-TOKEN': token
+      }
+    })
+            .then(response => response.json())
+            .then(data => {
+              subscriptionsTable.innerHTML = '';
+              data.forEach(subscription => {
+                const row = subscriptionsTable.insertRow();
+                row.innerHTML = `
+                        <td>${subscription.userId}</td>
+                        <td>${subscription.planType}</td>
+                        <td>${new Date(subscription.startAt).toLocaleDateString("ru-RU")}</td>
+                        <td>${new Date(subscription.endAt).toLocaleDateString("ru-RU")}</td>
+                        <td>
+                            <button class="btn btn-danger" onclick="deleteSubscription(${subscription.subscriptionId})">Удалить</button>
+                        </td>
+                    `;
+              });
+            })
+            .catch(error => console.error('Ошибка получения подписок:', error));
+  }
+
+  // Добавление новой подписки
+  addSubscriptionBtn.addEventListener('click', () => {
+    const userId = document.getElementById('user-id').value;
+    const planType = document.getElementById('plan-type').value;
+
+    if (!userId || !planType) {
+      alert('Пожалуйста, заполните все поля');
+      return;
+    }
+
+    const subscription = {
+      userId: userId,
+      planType: planType,
+      startAt: new Date().toISOString(),
+      endAt: new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString()
+    };
+
+    fetch('/subscription', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': token
+      },
+      body: JSON.stringify(subscription)
+    })
+            .then(response => response.json())
+            .then(() => {
+              fetchSubscriptions(userId);
+              alertBox.style.display = 'block';
+              setTimeout(() => alertBox.style.display = 'none', 3000);
+            })
+            .catch(error => console.error('Ошибка добавления подписки:', error));
+  });
+
+  // Удаление подписки
+  function deleteSubscription(subscriptionId) {
+    fetch(`/subscription/${subscriptionId}`, {
+      method: 'DELETE',
+      headers: {
+        'X-CSRF-TOKEN': token
+      }
+    })
+            .then(response => response.json())
+            .then(() => {
+              alertBox.style.display = 'block';
+              setTimeout(() => alertBox.style.display = 'none', 3000);
+              fetchSubscriptions(); // Обновление списка подписок
+            })
+            .catch(error => console.error('Ошибка удаления подписки:', error));
+  }
+
+  // Начальная загрузка подписок
+  fetchSubscriptions();
+</script>
+
+</body>
+</html>

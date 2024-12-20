@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Искра</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <meta name="csrf-token" th:content="${_csrf.token}">
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon/favicon-16x16.png">
+    <link rel="manifest" href="/static/favicon/site.webmanifest">
+</head>
+<body>
+
+<header>
+    <nav>
+        <div class="top-left">
+            <h1>Искра</h1>
+            <img src="/static/favicon/favicon-32x32.png" alt="Логотип">
+        </div>
+
+        <div class="top-right">
+            <div th:if="${!isAuthenticated}">
+                <a href="/register" class="button">Зарегистрироваться</a>
+                <a href="/login" class="button">Вход</a>
+            </div>
+            <div th:if="${isAuthenticated}">
+                <a th:href="@{/user/{id}(id=${authedUser.userId()})}" class="user-name" th:text="${authedUser.firstName()}" th:attr="data-authed-user-id=|${authedUser.userId()}|"></a>
+                <form action="/logout" method="post" class="logout-form">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                    <button type="submit" class="button logout-button">Выйти</button>
+                </form>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<main>
+    <p class="hello_message">Знакомьтесь с помощью Искры!</p>
+
+    <div class="card-container" th:if="${isAuthenticated}">
+        <div th:each="user : ${users}" th:if="${user.userId().longValue() != authedUser.userId().longValue()}">
+            <div class="card" th:attr="data-user-id=|${user.userId()}|">
+                <div class="card-header">
+                    <button class="like-button" data-liked="false">🤍</button>
+                    <a th:href="@{/chat/{user_id}(user_id=${user.userId()})}" class="message-button hidden">💬</a>
+                </div>
+                <img src="/static/images/default-avatar.jpeg" alt="Фото" class="profile-photo" th:attr="data-user-id=|${user.userId()}|">
+                <a th:href="@{/user/{id}(id=${user.userId()})}" th:text="${user.firstName()} + ' ' + ${user.lastName()}">Имя Фамилия</a>
+                <p th:text="(${user.gender()} == 0 ? 'Мужчина' : 'Женщина') + ', ' + ${T(java.time.Period).between(user.birthDate(), T(java.time.LocalDate).now()).getYears()} + ' лет'">Пол, возраст</p>
+                <p th:text="${user.city()}">Город</p>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    const authed_id = document.querySelectorAll("a[data-authed-user-id]")[0].getAttribute("data-authed-user-id"); // Получаем ID текущего пользователя
+    const allLikesEndpoint = `/like/${authed_id}`;
+    const token = document.querySelector('meta[name="csrf-token"]').content;
+
+    async function fetchLikes() {
+        try {
+            const response = await fetch(allLikesEndpoint);
+            if (response.ok) {
+                return await response.json();
+            } else {
+                console.error('Не удалось загрузить лайки:', response.statusText);
+                return [];
+            }
+        } catch (error) {
+            console.error('Ошибка при загрузке лайков:', error);
+            return [];
+        }
+    }
+
+    async function initializeLikeButtons() {
+        const likes = await fetchLikes();
+        const likedUserIDs = likes.map(like => like.receiver_id);
+
+        document.querySelectorAll('.card').forEach(card => {
+            const receiverID = card.getAttribute('data-user-id');
+            const likeButton = card.querySelector('.like-button');
+
+            if (likedUserIDs.includes(Number(receiverID))) {
+                likeButton.textContent = '❤️';
+                likeButton.setAttribute('data-liked', 'true');
+            }
+
+            likeButton.addEventListener('click', async () => {
+                const isLiked = likeButton.getAttribute('data-liked') === 'true';
+                const url = '/like';
+                const method = isLiked ? 'DELETE' : 'POST';
+
+                try {
+                    const response = await fetch(url, {
+                        method: method,
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': token
+                        },
+                        body: JSON.stringify({ sender_id: authed_id, receiver_id: receiverID, timestamp: Date.now() }),
+                    });
+
+                    if (response.ok) {
+                        likeButton.textContent = isLiked ? '🤍' : '❤️';
+                        likeButton.setAttribute('data-liked', !isLiked);
+                    } else {
+                        alert('Не удалось обновить лайк. Попробуйте снова.');
+                    }
+                } catch (error) {
+                    console.error('Ошибка при обновлении лайка:', error);
+                    alert('Не удалось выполнить действие.');
+                }
+            });
+        });
+    }
+
+    const matchesEndpoint = `/match/${authed_id}`;
+
+    async function fetchMatches() {
+        try {
+            const response = await fetch(matchesEndpoint);
+            if (response.ok) {
+                return await response.json();
+            } else {
+                console.error('Не удалось загрузить мэтчи:', response.statusText);
+                return [];
+            }
+        } catch (error) {
+            console.error('Ошибка при загрузке мэтчей:', error);
+            return [];
+        }
+    }
+
+    async function initializeMessageButtons() {
+        const matches = await fetchMatches();
+        const matchedUserIDs = matches.map(match => (match.user_id1 != authed_id) ? match.user_id1 : match.user_id2);
+
+        document.querySelectorAll('.card').forEach(card => {
+            const receiverID = card.getAttribute('data-user-id');
+            const messageButton = card.querySelector('.message-button');
+
+            if (matchedUserIDs.includes(Number(receiverID))) {
+                messageButton.classList.remove('hidden');
+            }
+        });
+    }
+
+    const profilePhotos = document.querySelectorAll(".profile-photo");
+    profilePhotos.forEach(photo => {
+        const userId = photo.dataset.userId;
+
+        fetch(`/photos/${userId}/primary`)
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error("Фото не найдено");
+                }
+            })
+            .then(data => {
+                photo.src = `/files/static/images/uploads/${data.fileName}`;
+            })
+            .catch(error => {
+                console.error(`Ошибка загрузки фото для пользователя ${userId}:`, error);
+            });
+    });
+
+    async function highlightUsersWithSubscription() {
+        const now = new Date();
+        for (const card of document.querySelectorAll('.card')) {
+            const userId = card.getAttribute('data-user-id');
+            try {
+                const response = await fetch(`/subscription/${userId}`, {
+                        method: 'GET',
+                        headers: {
+                            'X-CSRF-TOKEN': token
+                        }
+                    }
+                );
+                if (response.ok) {
+                    const subscription = (await response.json())[0];
+                    const startAt = new Date(subscription.startAt);
+                    const endAt = new Date(subscription.endAt);
+
+                    if (startAt <= now && endAt >= now) {
+                        const nameElement = card.querySelector('a[href^="/user/"]');
+                        nameElement.classList.add('has-subscription');
+                    }
+                }
+            } catch (error) {
+                console.error(`Ошибка при проверке подписки пользователя ${userId}:`, error);
+            }
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', highlightUsersWithSubscription);
+
+
+    document.addEventListener('DOMContentLoaded', initializeLikeButtons);
+    document.addEventListener('DOMContentLoaded', initializeMessageButtons);
+</script>
+</body>
+</html>

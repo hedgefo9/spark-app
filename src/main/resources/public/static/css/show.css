@@ -1,0 +1,327 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f5f8fa;
+}
+
+/* Контейнер */
+.profile-photo-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    max-width: 700px;
+    margin: 20px auto;
+}
+
+/* Слайдер */
+.slider {
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.slider-photo {
+    position: relative;
+    max-width: 700px;
+    max-height: 700px;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.profile-photo {
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Кнопки удаления и установки главного фото */
+.delete-button,
+.primary-button {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 16px;
+    color: black;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.delete-button {
+    top: 10px;
+    right: 10px;
+}
+
+.primary-button {
+    top: 10px;
+    left: 10px;
+}
+
+.primary-button.primary {
+    background: #ff6800;
+    color: white;
+}
+
+/* Кнопки переключения */
+.slider-button {
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 24px;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.slider-button.prev {
+    margin-right: 10px;
+}
+
+.slider-button.next {
+    margin-left: 10px;
+}
+
+/* Форма загрузки */
+.upload-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.file-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    background: #f5f5f5;
+    padding: 10px 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.file-label input {
+    display: none;
+}
+
+.upload-button {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.upload-button:hover {
+    background: #0056b3;
+}
+
+
+h2 {
+    text-align: center;
+    font-size: 2em;
+    color: #4caf50;
+    margin-top: 30px;
+    margin-bottom: 20px;
+}
+
+#profile-form, #bio-form {
+    max-width: 600px;
+    margin: 0 auto 30px;
+    padding: 20px;
+    background: #ebcdff;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+#profile-form h2, #bio-form h2 {
+    font-size: 1.5em;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+label {
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+input, select, textarea {
+    width: 80%;
+    padding: 10px;
+    margin-top: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+
+input:focus, select:focus, textarea:focus {
+    border-color: #4caf50;
+    background-color: #ffffff;
+    outline: none;
+}
+
+input[type="text"], input[type="date"], input[type="tel"], input[type="email"] {
+    font-size: 15px;
+}
+
+textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+select {
+    font-size: 15px;
+}
+
+button {
+    display: block;
+    padding: 12px;
+    font-size: 16px;
+    color: #fff;
+    background-color: #4caf50;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+button:disabled {
+    background-color: #b0c4de;
+    cursor: not-allowed;
+}
+
+button#save-profile-btn {
+    background-color: #28a745;
+}
+
+button#save-profile-btn:hover {
+    background-color: #218838;
+}
+
+/* Для отображения данных в режиме чтения */
+span {
+    display: inline-block;
+    font-size: 14px;
+    color: #666;
+    padding: 10px;
+    background-color: #f0f0f0;
+    border-radius: 5px;
+    width: calc(100% - 20px); /* Отступы для span */
+}
+
+form span {
+    display: block;
+    margin-top: 8px;
+    margin-bottom: 15px;
+}
+
+/* Выравнивание подписей и полей ввода */
+form div {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+}
+
+form div label {
+    margin-bottom: 5px;
+}
+
+/* Для био и остальных текстов */
+textarea {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 14px;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    resize: vertical;
+}
+
+/* Заголовок секции */
+.section-title {
+    font-size: 1.8rem;
+    color: #333;
+    margin-bottom: 20px;
+    font-weight: bold;
+    text-align: center;
+}
+
+/* Контейнер для информации об обновлениях */
+.update-info {
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Элементы с датами */
+.update-item {
+    font-size: 1rem;
+    color: #555;
+    margin-bottom: 10px;
+}
+
+.update-item strong {
+    color: #333;
+    font-weight: 600;
+}
+
+/* Добавление эффекта при наведении на элементы */
+.update-item:hover {
+    background-color: #f0f0f0;
+    padding-left: 10px;
+    border-left: 3px solid #4CAF50;
+    transition: all 0.3s ease;
+}
+
+/* Отступы между параграфами */
+.update-item:last-child {
+    margin-bottom: 0;
+}
+
+
+/* Мобильная версия */
+@media (max-width: 768px) {
+    #profile-form, #bio-form {
+        padding: 15px;
+    }
+
+    h2 {
+        font-size: 1.3em;
+    }
+
+    label, input, select, textarea, button {
+        font-size: 14px;
+    }
+
+    input[type="text"], input[type="date"], input[type="tel"], input[type="email"] {
+        font-size: 14px;
+    }
+}
