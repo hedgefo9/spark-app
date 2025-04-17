@@ -48,7 +48,7 @@
 ![admin_panel](https://github.com/user-attachments/assets/2f9bf5ad-c98c-47a6-bac2-005906f9a6a2)
 
 - Главная страница для невошедших
-![login](https://github.com/user-attachments/assets/4af23e14-fb13-4c8c-a577-d6c1f91b2f8d)
+![main_page_for_others](https://github.com/user-attachments/assets/62546f5a-6932-4366-bdd8-241a7dcab702)
 
 - Страница для входа
 ![login](https://github.com/user-attachments/assets/50faa342-2d35-49b5-80dd-e8cdbb839e6f)
