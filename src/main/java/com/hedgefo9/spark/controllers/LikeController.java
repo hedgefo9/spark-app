@@ -1,17 +1,13 @@
 package com.hedgefo9.spark.controllers;
 
-import com.hedgefo9.spark.dao.LikesDAO;
 import com.hedgefo9.spark.models.Like;
 import com.hedgefo9.spark.models.Person;
 import com.hedgefo9.spark.models.User;
-import com.hedgefo9.spark.services.security.CustomUserDetails;
+import com.hedgefo9.spark.services.LikeService;
 import com.hedgefo9.spark.services.security.SecurityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,17 +16,17 @@ import java.util.Objects;
 @RestController
 @RequestMapping("/like")
 public class LikeController {
-    private final LikesDAO LikesDAO;
+    private final LikeService likeService;
     private final SecurityService securityService;
 
     @Autowired
-    public LikeController(LikesDAO LikesDAO, SecurityService securityService) {
-        this.LikesDAO = LikesDAO;
+    public LikeController(LikeService likeService, SecurityService securityService) {
+        this.likeService = likeService;
         this.securityService = securityService;
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getAll(@PathVariable("id") long id) {
+    public ResponseEntity<?> getAllByUserId(@PathVariable("id") long id) {
         securityService.getAuthenticatedUser();
         var authenticatedUser = securityService.getAuthenticatedUser();
         boolean isAuthenticated = authenticatedUser.isPresent();
@@ -44,7 +40,7 @@ public class LikeController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Вы можете просмотреть только свои лайки");
         }
 
-        List<Like> likes = LikesDAO.getAllBySenderId(id);
+        List<Like> likes = likeService.getAllBySenderId(id);
         if (!likes.isEmpty()) {
             return ResponseEntity.status(HttpStatus.OK).body(likes);
         }
@@ -57,7 +53,7 @@ public class LikeController {
             return false;
         }
 
-        return LikesDAO.check(like);
+        return likeService.check(like);
     }
 
     @PostMapping
@@ -80,8 +76,7 @@ public class LikeController {
         }
 
 
-        System.out.println(like);
-        boolean created = LikesDAO.add(like);
+        boolean created = likeService.add(like);
         if (created) {
             return ResponseEntity.ok().build();
         }
@@ -107,7 +102,7 @@ public class LikeController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Вы можете удалять только свой лайк");
         }
 
-        boolean removed = LikesDAO.remove(like);
+        boolean removed = likeService.remove(like);
         if (removed) {
             return ResponseEntity.ok().build();
         }

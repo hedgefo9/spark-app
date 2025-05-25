@@ -25,9 +25,8 @@ public class CustomUserDetailsService implements UserDetailsService {
     public CustomUserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Admin admin = null;
         try {
-           admin = adminsDAO.findByEmail(username);
-        } catch (Exception e) {
-            e.printStackTrace();
+            admin = adminsDAO.findByEmail(username);
+        } catch (Exception _) {
         }
 
         if (admin != null) {

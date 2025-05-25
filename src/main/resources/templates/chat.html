@@ -20,18 +20,19 @@
 
 <header>
     <nav>
-        <h1 class="top-left"><a href="/">Искра</a></h1>
+        <div class="top-left">
+            <h1>Искра</h1>
+            <img src="/static/favicon/favicon-32x32.png" alt="Логотип">
+        </div>
+
         <div class="top-right">
             <div th:if="${!isAuthenticated}">
                 <a href="/register" class="button">Зарегистрироваться</a>
                 <a href="/login" class="button">Вход</a>
             </div>
-            <div th:if="${isAuthenticated}">
+            <div th:if="${isAuthenticated}" class="logout-form">
                 <a th:href="@{/user/{id}(id=${authedUser.userId()})}" class="user-name" th:text="${authedUser.firstName()}" th:attr="data-authed-user-id=|${authedUser.userId()}|"></a>
-                <form action="/logout" method="post" class="logout-form">
-                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                    <button type="submit" class="button logout-button">Выйти</button>
-                </form>
+                <button onclick="logout()" class="button logout-button">Выйти</button>
             </div>
         </div>
     </nav>
@@ -54,6 +55,31 @@
     const authedId = document.querySelector('meta[name="authed-user-id"]').content;
     const receiverId = document.querySelector('meta[name="receiver-user-id"]').content;
     const token = document.querySelector('meta[name="csrf-token"]').content;
+
+    async function logout() {
+        // Get the token from cookie
+        const cookies = document.cookie.split(';');
+        const authCookie = cookies.find(cookie => cookie.trim().startsWith('authToken='));
+        const authToken = authCookie ? authCookie.split('=')[1].trim() : null;
+
+        if (authToken) {
+            try {
+                await fetch('/api/auth/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'X-CSRF-TOKEN': token
+                    }
+                });
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        }
+
+        // Remove the cookie
+        document.cookie = 'authToken=; path=/; max-age=0; SameSite=Strict';
+        window.location.href = '/';
+    }
 
     // Переменные для работы с WebSocket и DOM
     let stompClient = null;

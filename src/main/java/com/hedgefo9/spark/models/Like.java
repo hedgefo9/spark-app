@@ -6,6 +6,6 @@ import java.sql.Timestamp;
 
 public record Like(@JsonProperty("sender_id") Long senderId,
                    @JsonProperty("receiver_id") Long receiverId,
-                   @JsonProperty("timestamp") Timestamp timestamp) {
+                   @JsonProperty("timestamp") Long timestamp) {
 
 }

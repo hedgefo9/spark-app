@@ -90,8 +90,9 @@ main.hello_message {
 }
 
 .logout-form {
-    display: inline-block;
+    display: flex;
     margin-right: 20px;
+    align-items: center;
 }
 
 .logout-button {

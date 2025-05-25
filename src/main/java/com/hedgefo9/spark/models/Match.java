@@ -17,5 +17,5 @@ public class Match {
     Long userId1;
     @JsonProperty("user_id2")
     Long userId2;
-    Timestamp matchedAt;
+    Long matchedAt;
 }

@@ -9,7 +9,6 @@ const uploadForm = document.getElementById('upload-form');
 let currentPhotoId = null;
 
 
-Функция для получения фотографий пользователя
 function loadPhotos(userId) {
     fetch(`/photos/${userId}`, {
         method: 'GET',
@@ -45,7 +44,6 @@ function loadPhotos(userId) {
         .catch(error => console.error('Ошибка:', error));
 }
 
-Обновление отображаемого фото
 function updatePhoto() {
     const photo = photos[currentIndex];
     currentPhoto.src = photo.src;
@@ -53,19 +51,16 @@ function updatePhoto() {
     primaryButton.classList.toggle('primary', photo.isPrimary);
 }
 
-Переключение на предыдущее фото
 function prevPhoto() {
     currentIndex = (currentIndex - 1 + photos.length) % photos.length;
     updatePhoto();
 }
 
-Переключение на следующее фото
 function nextPhoto() {
     currentIndex = (currentIndex + 1) % photos.length;
     updatePhoto();
 }
 
-Удаление фото
 function deletePhoto(photoId) {
     fetch(`/photos/${photoId}`, {
         method: 'DELETE',
@@ -85,7 +80,6 @@ function deletePhoto(photoId) {
         .catch(error => console.error('Ошибка:', error));
 }
 
-Установка главного фото
 function setPrimaryPhoto(photoId) {
     fetch(`/photos/${userId}/primary/${photoId}`,
         {
@@ -105,7 +99,6 @@ function setPrimaryPhoto(photoId) {
         .catch(error => console.error('Ошибка:', error));
 }
 
-Обработчик отправки формы для загрузки нового фото
 uploadForm.addEventListener('submit', async (event) => {
     event.preventDefault();
     const formData = new FormData(uploadForm);
@@ -162,7 +155,6 @@ document.addEventListener("DOMContentLoaded",  () => {
             .catch(error => console.error("Ошибка:", error));
     });
 
-    Обработка сохранения био
     document.getElementById("save-bio-btn").addEventListener("click", () => {
         const bioData = {
             userId: userId,

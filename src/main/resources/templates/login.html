@@ -1,34 +1,100 @@
 <!DOCTYPE html>
 <html lang="ru" xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="UTF-8">
-  <title>Вход</title>
-  <link rel="stylesheet" href="/static/css/style.css">
-
-  <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon/apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon/favicon-16x16.png">
-  <link rel="manifest" href="/static/favicon/site.webmanifest">
+    <meta charset="UTF-8">
+    <title>Вход</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon/favicon-16x16.png">
+    <link rel="manifest" href="/static/favicon/site.webmanifest">
+    <meta name="csrf-token" th:content="${_csrf.token}">
 </head>
 <body>
 
 <h1>Войти в систему</h1>
 
-<form th:action="@{/login}" method="post">
-  <div>
-    <label for="username">Электронная почта:</label>
-    <input type="text" id="username" name="username" required="required" />
-  </div>
-  <div>
-    <label for="password">Пароль:</label>
-    <input type="password" id="password" name="password" required="required" />
-  </div>
-  <div>
-    <button type="submit">Войти</button>
-  </div>
+<form id="loginForm" onsubmit="return handleLogin(event)">
+    <div>
+        <label for="username">Электронная почта:</label>
+        <input type="text" id="username" name="username" required="required" />
+    </div>
+    <div>
+        <label for="password">Пароль:</label>
+        <input type="password" id="password" name="password" required="required" />
+    </div>
+    <div>
+        <button type="submit">Войти</button>
+    </div>
+    <div id="error-message" style="color: red; display: none;"></div>
 </form>
 
 <p>Еще не зарегистрированы? <a href="/register">Зарегистрироваться</a></p>
+
+<script>
+    const token = document.querySelector('meta[name="csrf-token"]').content;
+
+    async function handleLogin(event) {
+        event.preventDefault();
+
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        const errorDiv = document.getElementById('error-message');
+
+        try {
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRF-TOKEN': token
+                },
+                body: `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                // Set cookie with token
+                document.cookie = `authToken=${data.token}; path=/; max-age=${24 * 60 * 60}; SameSite=Strict`;
+                console.log('Token stored in cookie');
+                window.location.href = '/';
+            } else {
+                errorDiv.textContent = 'Неверный email или пароль';
+                errorDiv.style.display = 'block';
+            }
+        } catch (error) {
+            errorDiv.textContent = 'Произошла ошибка при входе';
+            errorDiv.style.display = 'block';
+        }
+
+        return false;
+    }
+
+    async function logout() {
+        try {
+            await fetch('/api/auth/logout', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': token
+                }
+            });
+        } catch (error) {
+            console.error('Logout error:', error);
+        }
+        // Remove the cookie
+        document.cookie = 'authToken=; path=/; max-age=0; SameSite=Strict';
+        window.location.href = '/login';
+    }
+
+    // Check if we have a token on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const cookies = document.cookie.split(';');
+        const authCookie = cookies.find(cookie => cookie.trim().startsWith('authToken='));
+        if (authCookie) {
+            console.log('Found existing token in cookie');
+            window.location.href = '/';
+        }
+    });
+</script>
 
 </body>
 </html>

@@ -25,12 +25,9 @@
                 <a href="/register" class="button">Зарегистрироваться</a>
                 <a href="/login" class="button">Вход</a>
             </div>
-            <div th:if="${isAuthenticated}">
+            <div th:if="${isAuthenticated}" class="logout-form">
                 <a th:href="@{/user/{id}(id=${authedUser.userId()})}" class="user-name" th:text="${authedUser.firstName()}" th:attr="data-authed-user-id=|${authedUser.userId()}|"></a>
-                <form action="/logout" method="post" class="logout-form">
-                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                    <button type="submit" class="button logout-button">Выйти</button>
-                </form>
+                <button onclick="logout()" class="button logout-button">Выйти</button>
             </div>
         </div>
     </nav>
@@ -56,9 +53,38 @@
 </main>
 
 <script>
+    const token = document.querySelector('meta[name="csrf-token"]').content;
     const authed_id = document.querySelectorAll("a[data-authed-user-id]")[0].getAttribute("data-authed-user-id"); // Получаем ID текущего пользователя
     const allLikesEndpoint = `/like/${authed_id}`;
-    const token = document.querySelector('meta[name="csrf-token"]').content;
+
+    async function logout() {
+        // Get the token from cookie
+        const cookies = document.cookie.split(';');
+        const authCookie = cookies.find(cookie => cookie.trim().startsWith('authToken='));
+        const authToken = authCookie ? authCookie.split('=')[1].trim() : null;
+
+        if (authToken) {
+            try {
+                const response = await fetch('/api/auth/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': token,
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                if (response.ok) {
+                    document.cookie = 'authToken=; path=/; max-age=0; SameSite=Strict';
+                    window.location.href = '/';
+                } else {
+                    console.error('Logout failed:', response.statusText);
+                    alert('Не удалось выйти из системы. Попробуйте снова.');
+                }
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        }
+    }
 
     async function fetchLikes() {
         try {
@@ -181,13 +207,14 @@
                     }
                 );
                 if (response.ok) {
-                    const subscription = (await response.json())[0];
-                    const startAt = new Date(subscription.startAt);
-                    const endAt = new Date(subscription.endAt);
+                    for (const subscription of await response.json()) {
+                        const startAt = new Date(subscription.startAt);
+                        const endAt = new Date(subscription.endAt);
 
-                    if (startAt <= now && endAt >= now) {
-                        const nameElement = card.querySelector('a[href^="/user/"]');
-                        nameElement.classList.add('has-subscription');
+                        if (startAt <= now && endAt >= now) {
+                            const nameElement = card.querySelector('a[href^="/user/"]');
+                            nameElement.classList.add('has-subscription');
+                        }
                     }
                 }
             } catch (error) {
