@@ -3,7 +3,7 @@ package com.hedgefo9.spark.listener;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hedgefo9.spark.models.Like;
 import com.hedgefo9.spark.models.LikeEvent;
-import com.hedgefo9.spark.services.MatchService;
+import com.hedgefo9.spark.service.MatchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.connection.Message;

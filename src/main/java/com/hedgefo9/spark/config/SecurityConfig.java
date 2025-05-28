@@ -1,8 +1,8 @@
 package com.hedgefo9.spark.config;
 
-import com.hedgefo9.spark.services.security.CustomUserDetailsService;
-import com.hedgefo9.spark.services.security.TokenAuthenticationFilter;
-import com.hedgefo9.spark.services.security.TokenService;
+import com.hedgefo9.spark.service.security.CustomUserDetailsService;
+import com.hedgefo9.spark.service.security.TokenAuthenticationFilter;
+import com.hedgefo9.spark.service.security.TokenService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -15,7 +15,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 @Configuration
 @EnableWebSecurity

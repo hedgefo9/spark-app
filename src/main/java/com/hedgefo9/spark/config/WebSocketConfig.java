@@ -1,6 +1,6 @@
 package com.hedgefo9.spark.config;
 
-import com.hedgefo9.spark.services.security.CustomUserDetails;
+import com.hedgefo9.spark.service.security.CustomUserDetails;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
